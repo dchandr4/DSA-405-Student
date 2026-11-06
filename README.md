@@ -1,47 +1,62 @@
-# DSA 405: Data Wrangling and Web Scraping (Fall 2026)
+# Hybrid vs. Gasoline Fuel Economy, Model Year 2024
 
-NC State Data Science and AI Academy · Section 002 · Fridays, Aug 21 – Nov 20
+DSA 405 · Fall 2026 · Course project · Dhikshitha Chandrasekar (dchandr4)
 
-This repository holds the student materials for DSA 405: assignments, labs, project
-handouts, rubrics, and all course datasets. Materials are posted as the course
-progresses. Moodle links point directly at files in this repo, which is the
-authoritative copy.
+## What this project is
 
-## Using this repo
+Among model-year 2024 vehicles sold in the United States, do hybrids have higher combined fuel economy than gasoline-only vehicles of the same vehicle type and size class, and by how much?
 
-- **Notebooks (`.ipynb`)** open directly in Google Colab: from the notebook page on
-  GitHub, copy the URL into [Colab](https://colab.research.google.com) via
-  *File → Open notebook → GitHub*, or use the Moodle link, which opens the notebook in
-  Colab directly. Save a copy to Drive before working; edits in the preview are not
-  saved.
-- **Datasets** load over HTTPS in every lab and notebook; no manual download is needed.
-  Read [datasets/README.md](datasets/README.md) before trusting any file: every dataset
-  contains planted defects, and all data is simulated (no real restaurant, school,
-  permit, or person).
-- **Handouts and rubrics (`.md`)** render on GitHub.
+The project compares hybrid and gasoline versions *within* each kind of vehicle, so hybrid small SUVs are compared with gasoline small SUVs and not with pickup trucks. The answer is meant to help a car buyer judge whether a hybrid's higher price is worth the fuel it saves.
 
-## Available now (Weeks 0–1)
+## Where the data came from
 
-| File | Description |
-|---|---|
-| [Skills Self-Check](assignments/DSA405_SkillsSelfCheck_FA26.ipynb) | ~20 min, ungraded; report the result inside A1 |
-| [The Bridge: Python Essentials](assignments/DSA405_Bridge_PythonEssentials_FA26.ipynb) | The subset of Python the course uses |
-| [Reading Python translation sheet](assignments/DSA405_Bridge_ReadingPython.md) | For students arriving from R, SQL, or Excel |
-| [A1: About Me](assignments/DSA405_A1_AboutMe_FA26.ipynb) | Due Thu Aug 27, 11:59 PM |
-| [P0: Workspace](assignments/projects/DSA405_P0_Workspace_FA26.md) | Due Thu Aug 27, 11:59 PM |
-| [P1: Framing a Data Problem](assignments/projects/DSA405_P1_FramingADataProblem_FA26.md) | Due Thu Sep 3, 11:59 PM |
-| [Lab Rubric](course/DSA405_LabRubric_FA26.md) | The four criteria used for every A1–A9 |
-| [Project Rubrics](course/DSA405_ProjectRubrics_FA26.md) | P1–P4 and the lightning talk |
-| [datasets/](datasets/) | All seven course datasets, used from Week 1 (P0) onward |
+| Source | Publisher | How it is collected | Used in |
+|---|---|---|---|
+| Model Year 2024 Fuel Economy and Technology Data (CSV, 1,978 rows × 164 columns) | U.S. Environmental Protection Agency, 2025 Automotive Trends Report. https://www.epa.gov/automotive-trends/explore-automotive-trends-data | Downloaded once and stored unmodified in `data/raw/` | P2 onward |
+| Product Information Catalog and Vehicle Listing (vPIC) API | National Highway Traffic Safety Administration. https://vpic.nhtsa.dot.gov/api/ | Documented public API (`GetModelsForMakeYear`), one request per second or slower if the response headers ask, every response cached in `data/raw/nhtsa_vpic_2024.zip` | P3 onward |
 
-Weekly labs and later assignments appear here before the Friday they are used.
+Download addresses and dates for every raw file are in [`data/raw/SOURCES.md`](data/raw/SOURCES.md).
 
-## Submissions
+**Credit:** NHTSA vehicle types from the National Highway Traffic Safety Administration's vPIC API (https://vpic.nhtsa.dot.gov/api/).
 
-All graded work is submitted through Moodle, named
-`DSA405_002_FA26_[A#|P#]_[yourUnityID]`. Nothing is submitted through GitHub except the
-`dsa405-project` repo that P0 sets up.
+**Citation:** US Environmental Protection Agency. 2025 EPA Automotive Trends Report. Data available at www.epa.gov/automotive-trends/explore-automotive-trends-data.
 
-If anything here fails to load (a dead link, a notebook that will not open, a dataset
-URL that errors), post to the week's Moodle forum immediately rather than waiting with
-a broken environment.
+Both sources are free, public, need no login, and describe vehicles, not people.
+
+## How to run it
+
+1. Open a notebook (P2 or P3) on GitHub and click **Open in Colab** at the top.
+2. In Colab choose **Runtime → Restart session and run all**.
+
+Nothing needs to be downloaded first: the notebooks read the raw EPA CSV straight from `data/raw/` in this repository over the web, so the code cannot change the raw file.
+
+**P3 and the NHTSA API.** P3 first unpacks the cached API responses from `data/raw/nhtsa_vpic_2024.zip`, so a re-run does not call NHTSA again. Only if that file is missing does it call the API (about 160 requests, one per second, about 3 minutes) and save each response to `data/raw/nhtsa_vpic/`. After such a run, the notebook writes a new `nhtsa_vpic_2024.zip`; upload it to `data/raw/` here.
+
+Outputs are written to `data/clean/` inside the Colab session: the cleaned EPA file and cleaning log (P2), and the NHTSA model list and the joined EPA + NHTSA table (P3).
+
+Requirements: Python 3 with pandas, numpy, requests, matplotlib and seaborn (all preinstalled in Colab).
+
+## What each milestone does
+
+| Milestone | Notebook | Contents |
+|---|---|---|
+| P1 | `DSA405_002_FA26_P1_*.ipynb` | The question, the two sources, evidence both can be reached, terms of use |
+| P2 | `DSA405_002_FA26_P2_dchandr4.ipynb` | Audit of the EPA file, data dictionary, cleaning log, row and column accounting, provenance brief. Cleans the EPA file from 1,978 rows × 164 columns to 1,427 rows × 37 columns |
+| P3 | `DSA405_002_FA26_P3_dchandr4.ipynb` | Collects NHTSA vehicle types from the vPIC API (rate-limited, cached, fails loudly), compares the collection with the A8 plan, joins EPA and NHTSA many-to-one on make + model (left join, `validate="many_to_one"`), and checks the join with an 8-check verification suite |
+
+## Repository layout
+
+```
+data/
+  raw/
+    model-year-2024-fuel-economy-and-technology-data.csv   raw EPA file, never edited
+    nhtsa_vpic_2024.zip                                    cached NHTSA API responses (one JSON per make and vehicle type)
+    SOURCES.md                                             where and when each raw file was downloaded
+assignments/                                               course assignments
+DSA405_002_FA26_P1_*.ipynb                                 P1
+DSA405_002_FA26_P2_dchandr4.ipynb                          P2
+DSA405_002_FA26_P3_dchandr4.ipynb                          P3
+README.md
+```
+
+Rule: files in `data/raw/` are never edited after upload. The only code that writes there is P3's acquisition step, which adds new API responses to the cache and never changes an existing file.
